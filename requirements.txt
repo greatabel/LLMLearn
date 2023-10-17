@@ -1,3 +1,5 @@
 tensorflow-gpu==2.11.0
 torch -f https://download.pytorch.org/whl/cu114/torch_stable.html
 torchvision -f https://download.pytorch.org/whl/cu114/torch_stable.html
+
+llama-index==0.8.42
