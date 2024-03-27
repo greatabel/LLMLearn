@@ -68,19 +68,36 @@ class NPLM(nn.Module):
     def __init__(self):
         super(NPLM, self).__init__() 
         self.C = nn.Embedding(voc_size, embedding_size) # 定义一个词嵌入层
+        print("初始化词嵌入层，大小为:", voc_size, embedding_size)
         # 第一个线性层，其输入大小为 n_step * embedding_size，输出大小为 n_hidden
         self.linear1 = nn.Linear(n_step * embedding_size, n_hidden) 
+        print("初始化第一个线性层，输入大小:", n_step * embedding_size, "输出大小:", n_hidden)
         # 第二个线性层，其输入大小为 n_hidden，输出大小为 voc_size，即词汇表大小
-        self.linear2 = nn.Linear(n_hidden, voc_size) 
-    def forward(self, X):  # 定义前向传播过程
-        # 输入数据 X 张量的形状为 [batch_size, n_step]
-        X = self.C(X)  # 将 X 通过词嵌入层，形状变为 [batch_size, n_step, embedding_size]        
-        X = X.view(-1, n_step * embedding_size) # 形状变为 [batch_size, n_step * embedding_size]
-        # 通过第一个线性层并应用 ReLU 激活函数
-        hidden = torch.tanh(self.linear1(X)) # hidden 张量形状为 [batch_size, n_hidden]
-        # 通过第二个线性层得到输出 
-        output = self.linear2(hidden) # output 形状为 [batch_size, voc_size]
-        return output # 返回输出结果
+        self.linear2 = nn.Linear(n_hidden, voc_size)
+        print("初始化第二个线性层，输入大小:", n_hidden, "输出大小:", voc_size)
+        
+
+    def forward(self, X):
+        # 打印原始输入的前几个样本
+        print("\n原始输入的索引 (部分):", X[:, :2].numpy())
+        
+        # 词嵌入层
+        X = self.C(X)  # 通过词嵌入层
+        print("经词嵌入层转换后的部分样本数据:", X[:, :2, :].detach().numpy())
+        
+        # 重新塑形以适应线性层
+        X = X.view(-1, n_step * embedding_size)
+        print("重塑后的部分样本数据:", X[:2, :].detach().numpy())
+        
+        # 第一个线性层和激活函数
+        hidden = torch.tanh(self.linear1(X))
+        print("第一个线性层和tanh后的部分样本数据:", hidden[:2, :].detach().numpy())
+        
+        # 第二个线性层得到最终输出
+        output = self.linear2(hidden)
+        print("最终输出层的部分样本数据:", output[:2, :].detach().numpy())
+        
+        return output
 
 
 # In[7]:
