@@ -75,28 +75,27 @@ class NPLM(nn.Module):
         # 第二个线性层，其输入大小为 n_hidden，输出大小为 voc_size，即词汇表大小
         self.linear2 = nn.Linear(n_hidden, voc_size)
         print("初始化第二个线性层，输入大小:", n_hidden, "输出大小:", voc_size)
-        
+
 
     def forward(self, X):
-        # 打印原始输入的前几个样本
-        print("\n原始输入的索引 (部分):", X[:, :2].numpy())
-        
-        # 词嵌入层
-        X = self.C(X)  # 通过词嵌入层
-        print("经词嵌入层转换后的部分样本数据:", X[:, :2, :].detach().numpy())
-        
-        # 重新塑形以适应线性层
-        X = X.view(-1, n_step * embedding_size)
-        print("重塑后的部分样本数据:", X[:2, :].detach().numpy())
-        
-        # 第一个线性层和激活函数
-        hidden = torch.tanh(self.linear1(X))
-        print("第一个线性层和tanh后的部分样本数据:", hidden[:2, :].detach().numpy())
-        
-        # 第二个线性层得到最终输出
-        output = self.linear2(hidden)
-        print("最终输出层的部分样本数据:", output[:2, :].detach().numpy())
-        
+        global current_epoch, total_epochs
+        # 判断是否在开始的10个或最后10个epoch
+        if current_epoch < 3 or current_epoch >= total_epochs - 3:
+            print('-'*25)
+            print("\n原始输入的索引 (部分):", X[:, :2].numpy())
+            X = self.C(X)
+            print("经词嵌入层转换后的部分样本数据:", X[:, :2, :].detach().numpy())
+            X = X.view(-1, n_step * embedding_size)
+            print("重塑后的部分样本数据:", X[:2, :].detach().numpy())
+            hidden = torch.tanh(self.linear1(X))
+            print("第一个线性层和tanh后的部分样本数据:", hidden[:2, :].detach().numpy())
+            output = self.linear2(hidden)
+            print("最终输出层的部分样本数据:", output[:2, :].detach().numpy())
+        else:
+            X = self.C(X)
+            X = X.view(-1, n_step * embedding_size)
+            hidden = torch.tanh(self.linear1(X))
+            output = self.linear2(hidden)
         return output
 
 
@@ -111,20 +110,23 @@ print(' NPLM 模型结构：', model) # 打印模型的结构
 
 
 # In[12]:
-
+current_epoch = 0
+total_epochs = 5000 
 
 criterion = nn.CrossEntropyLoss() # 定义损失函数为交叉熵损失
 optimizer = optim.Adam(model.parameters(), lr=0.1) # 定义优化器为 Adam，学习率为 0.1
 # 训练模型
-for epoch in range(5000): # 设置训练迭代次数
-   optimizer.zero_grad() # 清除优化器的梯度
-   input_batch, target_batch = make_batch() # 创建输入和目标批处理数据
-   output = model(input_batch) # 将输入数据传入模型，得到输出结果
-   loss = criterion(output, target_batch) # 计算损失值
-   if (epoch + 1) % 1000 == 0: # 每 1000 次迭代，打印损失值
+for epoch in range(total_epochs):
+
+    current_epoch = epoch
+    optimizer.zero_grad() # 清除优化器的梯度
+    input_batch, target_batch = make_batch() # 创建输入和目标批处理数据
+    output = model(input_batch) # 将输入数据传入模型，得到输出结果
+    loss = criterion(output, target_batch) # 计算损失值
+    if (epoch + 1) % 1000 == 0: # 每 1000 次迭代，打印损失值
      print('Epoch:', '%04d' % (epoch + 1), 'cost =', '{:.6f}'.format(loss))
-   loss.backward() # 反向传播计算梯度
-   optimizer.step() # 更新模型参数
+    loss.backward() # 反向传播计算梯度
+    optimizer.step() # 更新模型参数
 
 
 # In[13]:
