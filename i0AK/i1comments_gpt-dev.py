@@ -107,18 +107,19 @@ class BigramLanguageModel(nn.Module):
             cprint("Batch size (B): {}".format(B), 'cyan')
             cprint("Time steps (T): {}".format(T), 'cyan')
             cprint("Features per time step (C): {}".format(C), 'cyan')
-            
-            cprint("原始 logits: \n{}".format(logits), 'magenta')
 
+            cprint("原始 logits 形状: {}".format(logits.shape), 'magenta')
+            cprint("原始 logits: \n{}".format(logits), 'magenta')
             cprint("原始 targets 形状: {}".format(targets.shape), 'magenta')
             cprint("原始 targets: \n{}".format(targets), 'magenta')
 
             logits = logits.view(B * T, C)
             targets = targets.view(B * T)
+            
             cprint("#forward()重塑后的 logits 形状: {}".format(logits.shape), 'green')
-            cprint("#forward()重塑后的 logits: \n{}".format(logits), 'magenta')
+            cprint("#forward()重塑后的 logits: \n{}".format(logits), 'green')
             cprint("#forward()重塑后的 targets 形状: {}".format(targets.shape), 'green')
-            cprint("#forward()重塑后的 targets: \n{}".format(targets), 'magenta')
+            cprint("#forward()重塑后的 targets: \n{}".format(targets), 'green')
             
             loss = F.cross_entropy(logits, targets)
             cprint("#forward()计算的损失: {:.4f}".format(loss.item()), 'red')
@@ -138,14 +139,15 @@ class BigramLanguageModel(nn.Module):
             cprint("@@generate() 已生成的索引: {}".format(idx.tolist()), 'red')
         return idx
 
-# 创建模型实例
-vocab_size = 10
-model = BigramLanguageModel(vocab_size)
-
-# 准备一个小批次的索引
-input_indices = torch.tensor([[1, 2, 3, 4]], dtype=torch.long)
-targets = torch.tensor([[2, 3, 4, 5]], dtype=torch.long)
-print('1   --------------------------->')
+# 创建模型实例，使用更小的词汇表大小  
+vocab_size = 5  
+model = BigramLanguageModel(vocab_size)  
+  
+# 准备一个更小的批次的索引  
+input_indices = torch.tensor([[1, 2]], dtype=torch.long)  
+targets = torch.tensor([[2, 3]], dtype=torch.long)  
+  
+print('1   --------------------------->')  
 # 执行前向传播
 _, loss = model(input_indices, targets)
 cprint("损失值: {:.4f}".format(loss.item()), 'red')
@@ -154,13 +156,16 @@ print('2   --------------------------->')
 # 设置优化器
 optimizer = torch.optim.AdamW(model.parameters(), lr=0.1)
 
-# 训练模型
-for epoch in range(3):  # 假设我们训练10个周期
-    optimizer.zero_grad(set_to_none=True)  # 清除之前的梯度
-    _, loss = model(input_indices, targets)  # 执行前向传播和损失计算
-    loss.backward()  # 执行反向传播，计算梯度
-    optimizer.step()  # 更新模型参数
-    cprint("Epoch {}: 损失值: {:.4f}".format(epoch, loss.item()), 'red')
+# 训练模型  
+for epoch in range(3):  # 假设我们训练3个周期  
+    print(f"Epoch {epoch} - Before step: token_embedding_table weights = \n{model.token_embedding_table.weight}") 
+    optimizer.zero_grad(set_to_none=True)  # 清除之前的梯度  
+    _, loss = model(input_indices, targets)  # 执行前向传播和损失计算  
+    loss.backward()  # 执行反向传播，计算梯度  
+ 
+    optimizer.step()  # 更新模型参数  
+    print(f"Epoch {epoch} - After step: token_embedding_table weights = \n{model.token_embedding_table.weight}")  
+    cprint("Epoch {}: 损失值: {:.4f}".format(epoch, loss.item()), 'red')  
 
 print('3   --------------------------->')
 # 生成文本
