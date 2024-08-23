@@ -200,9 +200,6 @@ start_idx = torch.tensor([[1]], dtype=torch.long)
 generated_sequence = model.generate(start_idx, max_new_tokens=5)
 
 
-print('------------------------------------------')
-import time
-time.sleep(3)
 
 # # 训练模型
 # m = BigramLanguageModel(vocab_size)
