@@ -115,7 +115,7 @@ class BigramLanguageModel(nn.Module):
 
             logits = logits.view(B * T, C)
             targets = targets.view(B * T)
-            
+
             cprint("#forward()重塑后的 logits 形状: {}".format(logits.shape), 'green')
             cprint("#forward()重塑后的 logits: \n{}".format(logits), 'green')
             cprint("#forward()重塑后的 targets 形状: {}".format(targets.shape), 'green')
@@ -128,16 +128,43 @@ class BigramLanguageModel(nn.Module):
             return logits, None
 
 
-    def generate(self, idx, max_new_tokens):
-        cprint("@@generate() 开始文本生成过程...", 'red')
-        for _ in range(max_new_tokens):
-            logits, _ = self.forward(idx)
-            logits = logits[:, -1, :]
-            probs = F.softmax(logits, dim=-1)
-            idx_next = torch.multinomial(probs, num_samples=1)
-            idx = torch.cat((idx, idx_next), dim=1)
-            cprint("@@generate() 已生成的索引: {}".format(idx.tolist()), 'red')
-        return idx
+    def generate(self, idx, max_new_tokens):  
+        cprint("@@generate() 开始文本生成过程...", 'red')  
+        for _ in range(max_new_tokens):  
+            logits, _ = self.forward(idx)  
+              
+            # 打印选择最后一个时间步之前的logits的形状和内容  
+            print("generate()选择最后一个时间步之前的logits:", logits)  
+            print("generate()选择最后一个时间步之前的logits的形状:", logits.shape)  
+              
+            logits = logits[:, -1, :]  
+              
+            # 打印选择最后一个时间步后的logits  
+            print("选择最后一个时间步后的logits:", logits)  
+            print("选择最后一个时间步后的logits的形状:", logits.shape)  
+              
+            probs = F.softmax(logits, dim=-1)  
+              
+            # 打印softmax处理后的概率分布  
+            print("经过softmax处理后的概率分布:", probs)  
+            print("经过softmax处理后的概率分布的形状:", probs.shape)  
+              
+            idx_next = torch.multinomial(probs, num_samples=1)  
+              
+            # 打印新生成的索引  
+            # print("随机抽样得到的下一个索引:", idx_next)  
+            cprint("generate()随机抽样得到的下一个索引:: {}".format(idx_next), 'red')
+            print( "generate()随机抽样得到的下一个索引的形状:", idx_next.shape)  
+              
+            idx = torch.cat((idx, idx_next), dim=1)  
+              
+            # 打印更新后的索引序列  
+            cprint("更新后的索引序列:", 'red')  
+            cprint(f"{idx.tolist()}", 'red')  
+            print('\n')
+              
+        return idx  
+
 
 # 创建模型实例，使用更小的词汇表大小  
 vocab_size = 5  
