@@ -34,7 +34,26 @@ print(c)
 print('-------------------')
 
 
-B,T,C = 4,8,2 # batch, time, channels
-x = torch.randn(B,T,C)
-print(x.shape)
-print('x=', x)
+  
+B, T, C = 4, 8, 2 # 批次数，时间步长，通道数  
+x = torch.randn(B, T, C)  # 创建一个随机的张量  
+  
+print("原始张量 x 的形状:", x.shape)  
+print("x =", x)  
+  
+xbow = torch.zeros((B, T, C))  # 创建一个形状相同的零张量，用于存储计算结果  
+  
+for b in range(B):  # 遍历每一个批次  
+    for t in range(T):  # 遍历每一个时间步  
+        xprev = x[b, :t+1]  # 取当前批次从时间开始到当前时间步的所有数据  
+        xbow[b, t] = torch.mean(xprev, 0)  # 计算平均值并存储  
+          
+        # 打印当前批次和时间步的信息  
+        print(f"批次 {b+1}, 时间步 {t+1} 的数据 xprev:")  
+        print(xprev)  
+        print(f"批次 {b+1}, 时间步 {t+1} 的平均值:")  
+        print(xbow[b, t])  
+  
+# 最终的 xbow 输出  
+print("最终的累积平均值张量 xbow:")  
+print(xbow)  
